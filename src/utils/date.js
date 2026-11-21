@@ -10,3 +10,10 @@ export function todayIso(now = new Date()) {
 export function currentMonth(now = new Date()) {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
 }
+
+export function addDaysIso(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const t = Date.UTC(y, m - 1, d + n);
+  return new Date(t).toISOString().slice(0, 10);
+}
+

@@ -3,6 +3,8 @@ const LABELS = {
   sent: 'Sent',
   overdue: 'Overdue',
   paid: 'Paid',
+  partial: 'Partly paid',
+  'due-soon': 'Due soon',
 };
 
 export default function StatusBadge({ status }) {
