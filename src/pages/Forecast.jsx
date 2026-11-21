@@ -121,7 +121,7 @@ export default function Forecast({ data }) {
         </div>
         <div className="summary-card">
           <span className="summary-label">Lowest balance</span>
-          <span className="summary-value">{formatRupees(fc.lowest.balance)}</span>
+          <span className={'summary-value' + (fc.lowest.balance < 0 ? ' negative' : '')}>{formatRupees(fc.lowest.balance)}</span>
           <span className="summary-sub">on {formatDate(fc.lowest.date)}</span>
         </div>
         <div className="summary-card">
@@ -161,7 +161,7 @@ export default function Forecast({ data }) {
                     {d.moneyOut > 0 ? formatRupees(d.moneyOut) : '—'}
                     <small>{d.outItems.map((i) => i.label).join(', ')}</small>
                   </td>
-                  <td data-label="Balance">{formatRupees(d.balance)}</td>
+                  <td data-label="Balance" className={d.balance < 0 ? 'negative' : ''}>{formatRupees(d.balance)}</td>
                 </tr>
               ))}
             </tbody>
