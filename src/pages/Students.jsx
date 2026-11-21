@@ -1,9 +1,6 @@
-import { useTuitionData } from '../data/store.js';
 import { formatRupees } from '../utils/format.js';
 
-export default function Students() {
-  const [data] = useTuitionData();
-
+export default function Students({ data }) {
   return (
     <section>
       <p className="count">{data.students.length} students</p>

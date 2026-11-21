@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { buildSeed } from './seed.js';
 
 const KEY = 'tuitiondesk.v1';
@@ -35,12 +34,4 @@ export function resetToSeed() {
   const data = buildSeed();
   saveData(data);
   return data;
-}
-
-export function useTuitionData() {
-  const [data, setData] = useState(() => loadData());
-  useEffect(() => {
-    saveData(data);
-  }, [data]);
-  return [data, setData];
 }

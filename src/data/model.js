@@ -10,8 +10,10 @@ export const STATUS = { DRAFT: 'draft', SENT: 'sent', OVERDUE: 'overdue', PAID: 
 export const PAYMENT_METHOD = { UPI: 'upi', CASH: 'cash' };
 export const BATCHES = ['Class 8 Maths', 'Class 9 Maths & Science', 'Class 10 Maths', 'Class 10 Science'];
 // today: 'YYYY-MM-DD' string
+// Drafts are never overdue; overdue applies only to sent invoices with an unpaid balance past the due date.
 export function deriveStatus(invoice, today) {
   if (invoice.amountPaid >= invoice.amount) return STATUS.PAID;
+  if (invoice.status === STATUS.DRAFT) return STATUS.DRAFT;
   if (invoice.dueDate < today) return STATUS.OVERDUE;
   return invoice.status;
 }
