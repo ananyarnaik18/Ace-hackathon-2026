@@ -3,7 +3,7 @@ import { STATUS, deriveStatus } from './model.js';
 import { balanceOf } from './invoices.js';
 import { formatRupees, formatDate } from '../utils/format.js';
 
-export const SCENARIO_TYPES = { LATE: 'late', REMOVE: 'remove', BILL: 'bill' };
+export const SCENARIO_TYPES = { LATE: 'late', ALL_LATE: 'allLate', REMOVE: 'remove', BILL: 'bill' };
 export const DEFAULT_LATE_DAYS = 15;
 
 function copyOf(data) {
@@ -14,6 +14,10 @@ function openInvoicesOf(data, studentId) {
   return data.invoices.filter(
     (inv) => inv.studentId === studentId && inv.status !== STATUS.DRAFT && balanceOf(inv) > 0
   );
+}
+
+function allOpenInvoices(data) {
+  return data.invoices.filter((inv) => inv.status !== STATUS.DRAFT && balanceOf(inv) > 0);
 }
 
 function studentName(data, studentId) {
@@ -32,6 +36,12 @@ export function validateScenario(data, scenario) {
     }
     return;
   }
+  if (scenario.type === SCENARIO_TYPES.ALL_LATE) {
+    if (!Number.isInteger(scenario.days) || scenario.days <= 0) {
+      throw new Error('Days late must be a whole number above 0');
+    }
+    return;
+  }
   if (!data.students.some((s) => s.id === scenario.studentId)) throw new Error('Choose a student');
   if (scenario.type === SCENARIO_TYPES.LATE && (!Number.isInteger(scenario.days) || scenario.days <= 0)) {
     throw new Error('Days late must be a whole number above 0');
@@ -44,6 +54,8 @@ export function applyScenario(data, scenario) {
   const arrivalShift = {};
   if (scenario.type === SCENARIO_TYPES.LATE) {
     for (const inv of openInvoicesOf(copy, scenario.studentId)) arrivalShift[inv.id] = scenario.days;
+  } else if (scenario.type === SCENARIO_TYPES.ALL_LATE) {
+    for (const inv of allOpenInvoices(copy)) arrivalShift[inv.id] = scenario.days;
   } else if (scenario.type === SCENARIO_TYPES.REMOVE) {
     const drop = new Set(openInvoicesOf(copy, scenario.studentId).map((i) => i.id));
     copy.invoices = copy.invoices.filter((i) => !drop.has(i.id));
@@ -63,6 +75,9 @@ function outcomeText(fc) {
 }
 
 export function describeScenario(data, scenario, whatIfFc) {
+  if (scenario.type === SCENARIO_TYPES.ALL_LATE) {
+    return 'If everyone pays ' + scenario.days + ' days late, ' + outcomeText(whatIfFc) + '.';
+  }
   if (scenario.type === SCENARIO_TYPES.LATE) {
     return 'If ' + studentName(data, scenario.studentId) + "'s parent pays " + scenario.days + ' days late, ' + outcomeText(whatIfFc) + '.';
   }

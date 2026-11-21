@@ -4,7 +4,7 @@ import { SCENARIO_TYPES, DEFAULT_LATE_DAYS, validateScenario, biggestLatePayer }
 // Controls only. The parent (Forecast page) owns the scenario state.
 // onRun(scenario) sets the active scenario; onReset() clears it.
 export default function WhatIfPanel({ data, today, onRun, onReset }) {
-  const [type, setType] = useState(SCENARIO_TYPES.LATE);
+  const [type, setType] = useState(SCENARIO_TYPES.ALL_LATE);
   const [studentId, setStudentId] = useState(data.students[0] ? data.students[0].id : '');
   const [days, setDays] = useState(String(DEFAULT_LATE_DAYS));
   const [billId, setBillId] = useState(data.recurringBills[0] ? data.recurringBills[0].id : '');
@@ -25,6 +25,8 @@ export default function WhatIfPanel({ data, today, onRun, onReset }) {
     e.preventDefault();
     if (type === SCENARIO_TYPES.BILL) {
       run({ type, billId, increase: Number(increase) });
+    } else if (type === SCENARIO_TYPES.ALL_LATE) {
+      run({ type, days: Number(days) });
     } else if (type === SCENARIO_TYPES.LATE) {
       run({ type, studentId, days: Number(days) });
     } else {
@@ -32,7 +34,11 @@ export default function WhatIfPanel({ data, today, onRun, onReset }) {
     }
   }
 
-  function preset() {
+  function badDayPreset() {
+    run({ type: SCENARIO_TYPES.ALL_LATE, days: DEFAULT_LATE_DAYS });
+  }
+
+  function latePayerPreset() {
     const id = biggestLatePayer(data, today);
     if (!id) {
       setError('No overdue invoices, so there is no late payer to test.');
@@ -53,13 +59,14 @@ export default function WhatIfPanel({ data, today, onRun, onReset }) {
         <label>
           Scenario
           <select value={type} onChange={(e) => setType(e.target.value)}>
-            <option value={SCENARIO_TYPES.LATE}>A parent pays late</option>
+            <option value={SCENARIO_TYPES.ALL_LATE}>All unpaid invoices are paid late</option>
+            <option value={SCENARIO_TYPES.LATE}>One student's parent pays late</option>
             <option value={SCENARIO_TYPES.REMOVE}>A student is removed for the month</option>
             <option value={SCENARIO_TYPES.BILL}>A bill increases</option>
           </select>
         </label>
 
-        {type !== SCENARIO_TYPES.BILL && (
+        {(type === SCENARIO_TYPES.LATE || type === SCENARIO_TYPES.REMOVE) && (
           <label>
             Student
             <select value={studentId} onChange={(e) => setStudentId(e.target.value)}>
@@ -70,7 +77,7 @@ export default function WhatIfPanel({ data, today, onRun, onReset }) {
           </label>
         )}
 
-        {type === SCENARIO_TYPES.LATE && (
+        {(type === SCENARIO_TYPES.LATE || type === SCENARIO_TYPES.ALL_LATE) && (
           <label>
             Days late
             <input type="number" min="1" step="1" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} />
@@ -101,7 +108,8 @@ export default function WhatIfPanel({ data, today, onRun, onReset }) {
         </div>
       </form>
       <div className="actions">
-        <button type="button" onClick={preset}>Biggest late payer pays {DEFAULT_LATE_DAYS} days late</button>
+        <button type="button" onClick={badDayPreset}>Bad day: everyone pays {DEFAULT_LATE_DAYS} days late</button>
+        <button type="button" onClick={latePayerPreset}>Biggest late payer pays {DEFAULT_LATE_DAYS} days late</button>
       </div>
       <p className="hint">The what-if works on a copy. Your saved invoices and payments are not changed.</p>
     </div>

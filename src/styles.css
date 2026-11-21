@@ -96,3 +96,23 @@ body { font-family: system-ui, sans-serif; margin: 0; background: #f5f6fa; color
 .form-card h3 { margin: 0 0 8px; font-size: 16px; }
 .form-card .actions { margin-top: 8px; }
 
+.whatif-panel form { display: grid; gap: 8px; }
+.whatif-panel select, .whatif-panel input { font: inherit; padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; }
+.whatif-panel label { display: block; font-size: 13px; color: #444; }
+.whatif-panel .actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.whatif-sentence { background: #fff7ed; border-left: 4px solid #ea580c; padding: 10px 12px; border-radius: 6px; font-size: 15px; margin: 12px 0; }
+.compare-cards .summary-card { border-left-color: #ea580c; }
+.compare-cards .summary-value { font-size: 16px; }
+.summary-value.is-negative, .summary-card .neg { color: #dc2626; }
+.reset-scenario { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid #0f5257; background: #fff; color: #0f5257; cursor: pointer; align-self: flex-start; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #444; margin: 6px 0 0; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-line { display: inline-block; width: 28px; height: 0; border-top: 2px solid #0f5257; }
+.legend-line.is-dashed { border-top: 2px dashed #ea580c; }
+.legend-swatch-neg { display: inline-block; width: 12px; height: 12px; background: #dc2626; opacity: 0.5; border-radius: 2px; }
+@media (max-width: 767px) {
+  .whatif-panel .actions button, .whatif-panel .actions .button-primary { flex: 1 1 100%; }
+  .compare-cards { grid-template-columns: 1fr; }
+  .whatif-sentence { font-size: 14px; }
+}
+
