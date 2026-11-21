@@ -1,5 +1,5 @@
 export const FORECAST_KEY = 'tuitiondesk.forecast.v1';
-export const DEFAULT_SETTINGS = { openingBalance: 3000, collectionDays: 7 };
+export const DEFAULT_SETTINGS = { openingBalance: 2000, collectionDays: 7 };
 
 export function clampCollectionDays(n) {
   const v = Math.floor(Number(n));

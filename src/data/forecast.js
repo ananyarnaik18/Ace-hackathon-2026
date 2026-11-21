@@ -10,7 +10,8 @@ function push(map, key, item) {
   map.get(key).push(item);
 }
 
-export function buildForecast(data, { today, horizon = 30, openingBalance = 0, collectionDays = 7 }) {
+// arrivalShift: optional { [invoiceId]: extraDays }. Used only by what-if late payments. Default {} = no change.
+export function buildForecast(data, { today, horizon = 30, openingBalance = 0, collectionDays = 7, arrivalShift = {} }) {
   const dates = [];
   for (let i = 0; i < horizon; i++) dates.push(addDaysIso(today, i));
   const dateSet = new Set(dates);
@@ -23,7 +24,9 @@ export function buildForecast(data, { today, horizon = 30, openingBalance = 0, c
     if (inv.status === STATUS.DRAFT) continue;
     const bal = balanceOf(inv);
     if (bal <= 0) continue;
-    const arrival = deriveStatus(inv, today) === STATUS.OVERDUE ? collectDate : inv.dueDate;
+    const base = deriveStatus(inv, today) === STATUS.OVERDUE ? collectDate : inv.dueDate;
+    const extra = Number(arrivalShift[inv.id]) || 0;
+    const arrival = extra > 0 ? addDaysIso(base, extra) : base;
     if (!dateSet.has(arrival)) continue;
     const student = data.students.find((s) => s.id === inv.studentId);
     push(inBy, arrival, { label: student ? student.name : '', amount: bal, invoiceId: inv.id });

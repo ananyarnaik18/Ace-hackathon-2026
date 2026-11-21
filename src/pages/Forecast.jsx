@@ -1,20 +1,26 @@
 import { useState } from 'react';
-import { buildForecast, HORIZONS } from '../data/forecast.js';
+import { buildWhatIf } from '../data/whatif.js';
+import { HORIZONS } from '../data/forecast.js';
 import { loadForecastSettings, saveForecastSettings, clampCollectionDays } from '../data/forecastSettings.js';
 import { todayIso } from '../utils/date.js';
 import { formatRupees, formatDate } from '../utils/format.js';
 import ForecastChart from '../components/ForecastChart.jsx';
+import WhatIfPanel from '../components/WhatIfPanel.jsx';
 
 export default function Forecast({ data }) {
   const [settings, setSettings] = useState(() => loadForecastSettings());
   const [horizon, setHorizon] = useState(30);
+  const [scenario, setScenario] = useState(null);
   const today = todayIso();
-  const fc = buildForecast(data, {
-    today,
-    horizon,
-    openingBalance: settings.openingBalance,
-    collectionDays: settings.collectionDays,
-  });
+
+  const result = buildWhatIf(
+    data,
+    { today, horizon, openingBalance: settings.openingBalance, collectionDays: settings.collectionDays },
+    scenario
+  );
+  const fc = result.baseline;
+  const wf = result.whatIf;
+  const cmp = result.comparison;
 
   function updateSettings(next) {
     setSettings(next);
@@ -55,6 +61,13 @@ export default function Forecast({ data }) {
         </p>
       </div>
 
+      <WhatIfPanel
+        data={data}
+        today={today}
+        onRun={(s) => setScenario(s)}
+        onReset={() => setScenario(null)}
+      />
+
       <div className="filters">
         {HORIZONS.map((h) => (
           <button key={h} type="button" className={h === horizon ? 'active' : ''} onClick={() => setHorizon(h)}>
@@ -62,6 +75,40 @@ export default function Forecast({ data }) {
           </button>
         ))}
       </div>
+
+      {cmp && (
+        <>
+          <p className="whatif-sentence" role="status">{result.sentence}</p>
+          <div className="summary-cards compare-cards">
+            <div className="summary-card">
+              <span className="summary-label">Lowest balance</span>
+              <span className="summary-value">
+                {formatRupees(cmp.lowestBaseline.balance)} → {formatRupees(cmp.lowestWhatIf.balance)}
+              </span>
+              <span className="summary-sub">baseline → what-if</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Cash goes negative</span>
+              <span className="summary-value">
+                {cmp.firstNegBaseline ? formatDate(cmp.firstNegBaseline) : 'Not in ' + horizon + ' days'} →{' '}
+                {cmp.firstNegWhatIf ? formatDate(cmp.firstNegWhatIf) : 'Not in ' + horizon + ' days'}
+              </span>
+              <span className="summary-sub">baseline → what-if</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Money in</span>
+              <span className="summary-value">
+                {formatRupees(cmp.moneyInBaseline)} → {formatRupees(cmp.moneyInWhatIf)}
+              </span>
+              <span className="summary-sub">baseline → what-if</span>
+            </div>
+            <div className="summary-card">
+              <span className="summary-label">Scenario</span>
+              <button type="button" className="reset-scenario" onClick={() => setScenario(null)}>Reset scenario</button>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="summary-cards">
         <div className="summary-card summary-collected">
@@ -86,7 +133,7 @@ export default function Forecast({ data }) {
       </div>
 
       <h2 className="section-title">Running balance</h2>
-      <ForecastChart days={fc.days} />
+      <ForecastChart days={fc.days} compareDays={wf ? wf.days : null} />
 
       <h2 className="section-title">Upcoming money in and out</h2>
       {activeDays.length === 0 ? (

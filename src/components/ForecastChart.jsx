@@ -11,9 +11,11 @@ function shortDate(iso) {
   return formatDate(iso).slice(0, 6);
 }
 
-export default function ForecastChart({ days }) {
+// days: baseline days. compareDays (optional): what-if days drawn as a dashed second line.
+export default function ForecastChart({ days, compareDays = null }) {
   if (!days.length) return null;
-  const values = days.map((d) => d.balance);
+  const all = compareDays ? [...days, ...compareDays] : days;
+  const values = all.map((d) => d.balance);
   const min = Math.min(0, ...values);
   const max = Math.max(0, ...values);
   const span = max - min || 1;
@@ -23,25 +25,29 @@ export default function ForecastChart({ days }) {
   const y = (v) => PAD_T + ((max - v) / span) * innerH;
   const zeroY = y(0);
 
-  const linePts = days.map((d, i) => x(i).toFixed(1) + ',' + y(d.balance).toFixed(1)).join(' ');
+  const pts = (series) => series.map((d, i) => x(i).toFixed(1) + ',' + y(d.balance).toFixed(1)).join(' ');
 
-  const runs = [];
-  let run = [];
-  days.forEach((d, i) => {
-    if (d.balance < 0) {
-      run.push(i);
-    } else if (run.length) {
-      runs.push(run);
-      run = [];
-    }
-  });
-  if (run.length) runs.push(run);
+  function negativePolys(series) {
+    const runs = [];
+    let run = [];
+    series.forEach((d, i) => {
+      if (d.balance < 0) {
+        run.push(i);
+      } else if (run.length) {
+        runs.push(run);
+        run = [];
+      }
+    });
+    if (run.length) runs.push(run);
+    return runs.map((idx) => {
+      const top = idx.map((i) => x(i).toFixed(1) + ',' + y(series[i].balance).toFixed(1));
+      const bottom = [...idx].reverse().map((i) => x(i).toFixed(1) + ',' + zeroY.toFixed(1));
+      return [...top, ...bottom].join(' ');
+    });
+  }
 
-  const negPolys = runs.map((idx) => {
-    const top = idx.map((i) => x(i).toFixed(1) + ',' + y(days[i].balance).toFixed(1));
-    const bottom = [...idx].reverse().map((i) => x(i).toFixed(1) + ',' + zeroY.toFixed(1));
-    return [...top, ...bottom].join(' ');
-  });
+  const basePolys = negativePolys(days);
+  const whatIfPolys = compareDays ? negativePolys(compareDays) : [];
 
   const labelIdx = [...new Set([0, Math.floor((days.length - 1) / 2), days.length - 1])];
 
@@ -52,10 +58,16 @@ export default function ForecastChart({ days }) {
         <text x={PAD_L - 6} y={zeroY + 4} fontSize="11" textAnchor="end" fill="#666">0</text>
         <text x={PAD_L - 6} y={PAD_T + 4} fontSize="11" textAnchor="end" fill="#666">{formatRupees(max)}</text>
         <text x={PAD_L - 6} y={H - PAD_B} fontSize="11" textAnchor="end" fill="#666">{formatRupees(min)}</text>
-        {negPolys.map((p, k) => (
-          <polygon key={k} points={p} fill="#dc2626" fillOpacity="0.35" />
+        {basePolys.map((p, k) => (
+          <polygon key={'b' + k} points={p} fill="#dc2626" fillOpacity="0.35" />
         ))}
-        <polyline points={linePts} fill="none" stroke="#0f5257" strokeWidth="2" />
+        {whatIfPolys.map((p, k) => (
+          <polygon key={'w' + k} points={p} fill="#ea580c" fillOpacity="0.25" />
+        ))}
+        <polyline points={pts(days)} fill="none" stroke="#0f5257" strokeWidth="2" />
+        {compareDays && (
+          <polyline points={pts(compareDays)} fill="none" stroke="#ea580c" strokeWidth="2" strokeDasharray="6 4" />
+        )}
         {labelIdx.map((i) => (
           <text
             key={i}
@@ -69,7 +81,11 @@ export default function ForecastChart({ days }) {
           </text>
         ))}
       </svg>
-      <p className="chart-caption">Red area: balance below zero.</p>
+      <p className="chart-caption">
+        {compareDays
+          ? 'Solid teal: baseline. Dashed orange: what-if. Red and orange areas: balance below zero.'
+          : 'Red area: balance below zero.'}
+      </p>
     </div>
   );
 }
