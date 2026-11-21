@@ -28,7 +28,7 @@ export default function App() {
     <div className="app">
       <Header />
       <NavBar current={currentPage} onChange={setCurrentPage} />
-      <Page data={data} setData={setData} />
+      <Page data={data} setData={setData} onNavigate={setCurrentPage} />
     </div>
   );
 }

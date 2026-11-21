@@ -2,9 +2,11 @@ import { STATUS, deriveStatus } from './model.js';
 import { balanceOf, daysOverdue } from './invoices.js';
 import { addDaysIso } from '../utils/date.js';
 import { formatRupees, formatDate } from '../utils/format.js';
+import { buildForecast } from './forecast.js';
 
 export const DUE_SOON_DAYS = 3;
 export const ALERT_LIMIT = 5;
+export const CASH_HORIZON = 30;
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -81,7 +83,7 @@ export function draftInvoices(data) {
   return out;
 }
 
-export function buildAlerts(data, today) {
+export function buildAlerts(data, today, settings = null) {
   const overdueAlerts = owedRows(data, today)
     .filter((r) => r.displayStatus === STATUS.OVERDUE)
     .map((r) => ({
@@ -114,9 +116,30 @@ export function buildAlerts(data, today) {
     actionLabel: 'Mark sent',
   }));
 
-  const alerts = [...overdueAlerts, ...dueSoonAlerts, ...draftAlerts];
-  // CASH-SHORTFALL ALERT: add its builder here in a later step. Not built yet.
-  return alerts;
+  // Cash-shortfall alert: top priority when the 30-day forecast goes negative.
+  // Only built when forecast settings are supplied.
+  const cashAlerts = [];
+  if (settings) {
+    const fc = buildForecast(data, {
+      today,
+      horizon: CASH_HORIZON,
+      openingBalance: settings.openingBalance,
+      collectionDays: settings.collectionDays,
+    });
+    if (fc.firstNegativeDate) {
+      cashAlerts.push({
+        kind: 'cash',
+        key: 'cash-negative',
+        invoiceId: null,
+        studentName: '',
+        title: 'Cash goes negative on ' + formatDate(fc.firstNegativeDate),
+        detail: 'Lowest balance ' + formatRupees(fc.lowest.balance) + ' on ' + formatDate(fc.lowest.date),
+        actionLabel: 'View forecast',
+      });
+    }
+  }
+
+  return [...cashAlerts, ...overdueAlerts, ...dueSoonAlerts, ...draftAlerts];
 }
 
 export function visibleAlerts(alerts, showAll) {

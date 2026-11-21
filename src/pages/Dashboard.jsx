@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { summarize, owedRows, buildAlerts, visibleAlerts, ALERT_LIMIT } from '../data/dashboard.js';
 import { todayIso } from '../utils/date.js';
 import { formatRupees } from '../utils/format.js';
+import { loadForecastSettings } from '../data/forecastSettings.js';
 import AlertCard from '../components/AlertCard.jsx';
 import OwedTable from '../components/OwedTable.jsx';
 
-export default function Dashboard({ data, setData }) {
+export default function Dashboard({ data, setData, onNavigate }) {
   const today = todayIso();
   const [showAll, setShowAll] = useState(false);
   const summary = summarize(data, today);
   const rows = owedRows(data, today);
-  const alerts = buildAlerts(data, today);
+  const settings = loadForecastSettings();
+  const alerts = buildAlerts(data, today, settings);
   const shown = visibleAlerts(alerts, showAll);
 
   return (
@@ -38,7 +40,7 @@ export default function Dashboard({ data, setData }) {
       <h2 className="section-title">Alerts</h2>
       {alerts.length === 0 && <p className="hint">No alerts right now.</p>}
       {shown.map((alert) => (
-        <AlertCard key={alert.key} alert={alert} data={data} setData={setData} today={today} />
+        <AlertCard key={alert.key} alert={alert} data={data} setData={setData} today={today} onNavigate={onNavigate} />
       ))}
       {alerts.length > ALERT_LIMIT && (
         <button type="button" className="show-all" onClick={() => setShowAll(!showAll)}>
