@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { balanceOf, daysOverdue } from '../data/invoices';
-import { buildReminder, whatsappLink } from '../data/reminder';
+import { buildReminder, whatsappLink, REMINDER_LANGUAGES } from '../data/reminder';
 
 export default function ReminderPanel({ invoice, student, today, onClose }) {
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [lang, setLang] = useState('en');
 
   const days = daysOverdue(invoice, today);
   const text = buildReminder({
@@ -12,6 +13,7 @@ export default function ReminderPanel({ invoice, student, today, onClose }) {
     studentName: student.name,
     amount: balanceOf(invoice),
     daysOverdue: days,
+    lang,
   });
 
   function handleCopy() {
@@ -36,6 +38,18 @@ export default function ReminderPanel({ invoice, student, today, onClose }) {
   return (
     <div className="reminder-panel">
       <h4>Draft reminder</h4>
+      <div>
+        {REMINDER_LANGUAGES.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={lang === option.value}
+            onClick={() => setLang(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
       <textarea readOnly rows={6} value={text} />
       <button type="button" onClick={handleCopy}>Copy</button>
       {copied && <span> Copied</span>}

@@ -145,3 +145,21 @@ export function buildAlerts(data, today, settings = null) {
 export function visibleAlerts(alerts, showAll) {
   return showAll ? alerts : alerts.slice(0, ALERT_LIMIT);
 }
+
+export const PLAN_PRICE = 299;
+
+export function paysForItself(data, today, planPrice = PLAN_PRICE) {
+  const collectedThisMonth = summarize(data, today).collectedThisMonth;
+  let comparison;
+  if (collectedThisMonth > 0 && collectedThisMonth >= planPrice) {
+    comparison =
+      'You collected ' + formatRupees(collectedThisMonth) + ' this month, which is about ' +
+      Math.floor(collectedThisMonth / planPrice) + ' times the ' + formatRupees(planPrice) + ' plan.';
+  } else if (collectedThisMonth > 0) {
+    comparison = 'Recovering just one fee covers the ' + formatRupees(planPrice) + ' plan.';
+  } else {
+    comparison = 'One recovered fee covers the ' + formatRupees(planPrice) + ' monthly plan.';
+  }
+  return { collectedThisMonth, planPrice, comparison };
+}
+

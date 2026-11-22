@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { summarize, owedRows, buildAlerts, visibleAlerts, ALERT_LIMIT } from '../data/dashboard.js';
+import { summarize, owedRows, buildAlerts, visibleAlerts, ALERT_LIMIT, paysForItself, PLAN_PRICE } from '../data/dashboard.js';
 import { todayIso } from '../utils/date.js';
 import { formatRupees } from '../utils/format.js';
 import { loadForecastSettings } from '../data/forecastSettings.js';
@@ -10,6 +10,7 @@ export default function Dashboard({ data, setData, onNavigate }) {
   const today = todayIso();
   const [showAll, setShowAll] = useState(false);
   const summary = summarize(data, today);
+  const payback = paysForItself(data, today);
   const rows = owedRows(data, today);
   const settings = loadForecastSettings();
   const alerts = buildAlerts(data, today, settings);
@@ -34,6 +35,12 @@ export default function Dashboard({ data, setData, onNavigate }) {
         <div className="summary-card">
           <span className="summary-label">Students who owe</span>
           <span className="summary-value">{summary.studentsOwing}</span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-label">Why TuitionDesk pays for itself</span>
+          <span className="summary-value">{formatRupees(payback.collectedThisMonth)}</span>
+          <span className="summary-sub">{formatRupees(PLAN_PRICE)}/month</span>
+          <span className="summary-sub">{payback.comparison}</span>
         </div>
       </div>
 
