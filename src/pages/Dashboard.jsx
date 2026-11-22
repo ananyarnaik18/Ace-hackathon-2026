@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { summarize, owedRows, buildAlerts, visibleAlerts, ALERT_LIMIT, paysForItself, PLAN_PRICE } from '../data/dashboard.js';
+import { summarize, owedRows, buildAlerts, visibleAlerts, ALERT_LIMIT, paysForItself, PLAN_PRICE, lowestBalanceWithin } from '../data/dashboard.js';
 import { todayIso } from '../utils/date.js';
-import { formatRupees } from '../utils/format.js';
+import { formatRupees, formatDate } from '../utils/format.js';
 import { loadForecastSettings } from '../data/forecastSettings.js';
+import { buildForecast } from '../data/forecast.js';
 import AlertCard from '../components/AlertCard.jsx';
 import OwedTable from '../components/OwedTable.jsx';
 
-export default function Dashboard({ data, setData, onNavigate }) {
+export default function Dashboard({ data, setData, onNavigate, onOpenBadDay }) {
   const today = todayIso();
   const [showAll, setShowAll] = useState(false);
   const summary = summarize(data, today);
@@ -15,6 +16,8 @@ export default function Dashboard({ data, setData, onNavigate }) {
   const settings = loadForecastSettings();
   const alerts = buildAlerts(data, today, settings);
   const shown = visibleAlerts(alerts, showAll);
+  const forecast = buildForecast(data, { today, horizon: 30 });
+  const lowest = lowestBalanceWithin(forecast, today, 30);
 
   return (
     <section className="dashboard">
@@ -41,6 +44,16 @@ export default function Dashboard({ data, setData, onNavigate }) {
           <span className="summary-value">{formatRupees(payback.collectedThisMonth)}</span>
           <span className="summary-sub">{formatRupees(PLAN_PRICE)}/month</span>
           <span className="summary-sub">{payback.comparison}</span>
+        </div>
+        <div className="summary-card">
+          <span className="summary-label">Cash outlook</span>
+          <span className="summary-sub">
+            Lowest balance in next 30 days: <span className={lowest.balance < 0 ? 'negative' : undefined}>{formatRupees(lowest.balance)}</span>
+            {' on '}{lowest.date ? formatDate(lowest.date) : 'no dates'}
+          </span>
+          <button className="show-all" type="button" onClick={() => onOpenBadDay && onOpenBadDay()}>
+            See what happens if everyone pays 15 days late
+          </button>
         </div>
       </div>
 

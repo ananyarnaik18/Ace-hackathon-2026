@@ -163,3 +163,22 @@ export function paysForItself(data, today, planPrice = PLAN_PRICE) {
   return { collectedThisMonth, planPrice, comparison };
 }
 
+// Returns the next step for an overdue invoice, or null when not overdue.
+export function nextAction(daysOverdue) {
+  if (typeof daysOverdue !== 'number' || Number.isNaN(daysOverdue) || daysOverdue <= 0) return null;
+  if (daysOverdue <= 7) return 'Send a gentle reminder';
+  if (daysOverdue <= 20) return 'Follow up by call or WhatsApp today';
+  return 'Escalate: call the parent and agree a payment date';
+}
+
+// Lowest forecast balance for dates in [today, today + days - 1].
+// Ties keep the earliest entry. Returns { balance: null, date: null } if none qualify.
+export function lowestBalanceWithin(forecast, today, days = 30) {
+  const end = addDaysIso(today, days - 1);
+  let best = null;
+  for (const entry of forecast?.days ?? []) {
+    if (entry.date < today || entry.date > end) continue;
+    if (best === null || entry.balance < best.balance) best = entry;
+  }
+  return best ? { balance: best.balance, date: best.date } : { balance: null, date: null };
+}

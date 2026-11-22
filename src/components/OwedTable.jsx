@@ -3,6 +3,7 @@ import StatusBadge from './StatusBadge.jsx';
 import ReminderPanel from './ReminderPanel.jsx';
 import RecordPaymentForm from './RecordPaymentForm.jsx';
 import { recordPayment } from '../data/invoices.js';
+import { nextAction } from '../data/dashboard.js';
 import { formatRupees, formatDate } from '../utils/format.js';
 
 const MONTHS = [
@@ -47,7 +48,10 @@ export default function OwedTable({ rows, data, setData, today }) {
                 <td data-label="Month">{monthLabel(row.invoice.month)}</td>
                 <td data-label="Balance">{formatRupees(row.balance)}</td>
                 <td data-label="Due date">{formatDate(row.dueDate)}</td>
-                <td data-label="Days overdue">{row.daysOverdue > 0 ? row.daysOverdue : '—'}</td>
+                <td data-label="Days overdue">
+                  {row.daysOverdue > 0 ? row.daysOverdue : '—'}
+                  {nextAction(row.daysOverdue) && <div className="hint">{nextAction(row.daysOverdue)}</div>}
+                </td>
                 <td data-label="Status">
                   <StatusBadge
                     status={row.displayStatus === 'overdue' ? 'overdue' : (row.partial ? 'partial' : 'sent')}

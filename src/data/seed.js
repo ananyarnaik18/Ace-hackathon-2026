@@ -105,8 +105,8 @@ export function buildSeed(today = new Date()) {
 
   const recurringBills = [
     { id: 'rb1', name: 'Rent', amount: 8000, dueDay: 1 },
-    { id: 'rb2', name: 'Internet', amount: 999, dueDay: 5 },
-    { id: 'rb3', name: 'Study materials', amount: 1500, dueDay: 10 },
+    { id: 'rb2', name: 'Internet', amount: 700, dueDay: 5 },
+    { id: 'rb3', name: 'Electricity', amount: 1200, dueDay: 10 },
   ];
 
   return { students, invoices, payments, recurringBills };

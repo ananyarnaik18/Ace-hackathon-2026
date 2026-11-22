@@ -51,3 +51,18 @@ Requires Node.js 18 or newer.
 ## How it was built
 
 TuitionDesk was built with Codebenders Nexen in short loops. Each step started with a written plan (stack, file structure, data model) that was approved before any file changed. Each change was then made in a small, separate edit and checked before the next one began: the production build, Node checks on the business logic in `src/data/`, and a search for leftover markup. The screens were not clicked through in an automated browser test.
+
+## Recent changes
+
+- **Students page:** add, edit and delete students with validation (name, parent name, 10-digit parent phone, batch, monthly fee, due day 1 to 28). Adding a student can create this month's invoice as a draft. Deleting a student also removes their invoices and payments, after a confirmation.
+- **Reset demo data:** a button on the Students page reloads the sample data after a confirmation.
+- **Hinglish reminders:** the reminder panel has an English / Hinglish toggle. The English text is unchanged.
+- **Why TuitionDesk pays for itself:** a dashboard card shows the amount collected this month against the ₹299/month plan.
+- **Cash outlook:** a dashboard card shows the lowest forecast balance in the next 30 days, in red if negative, with a button that opens the Forecast page with the "Bad day" scenario (everyone pays 15 days late).
+- **Next-action hints:** the "Who owes what" table suggests a next step by days overdue (1 to 7: send a gentle reminder; 8 to 20: follow up by call or WhatsApp today; over 20: call the parent and agree a payment date).
+- **Seeded recurring bills:** Rent ₹8,000 (day 1), Internet ₹700 (day 5), Electricity ₹1,200 (day 10).
+
+## Testing
+
+Run `npm test`. It uses Node's built-in test runner (`node --test`) over the invoice, forecast, what-if and dashboard calculations in `src/tests/`.
+

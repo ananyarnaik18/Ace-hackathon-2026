@@ -18,17 +18,32 @@ const PAGES = {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('students');
+  const [forecastPreset, setForecastPreset] = useState(null);
+  useEffect(() => {
+    if (currentPage !== 'forecast' && forecastPreset) setForecastPreset(null);
+  }, [currentPage, forecastPreset]);
+
   const [data, setData] = useState(() => loadData());
+  function openBadDay() {
+    setForecastPreset('badDay');
+    setCurrentPage('forecast');
+  }
   useEffect(() => {
     saveData(data);
   }, [data]);
   const Page = PAGES[currentPage];
+  const extraProps =
+    currentPage === 'dashboard'
+      ? { onOpenBadDay: openBadDay }
+      : currentPage === 'forecast'
+        ? { preset: forecastPreset }
+        : {};
 
   return (
     <div className="app">
       <Header />
       <NavBar current={currentPage} onChange={setCurrentPage} />
-      <Page data={data} setData={setData} onNavigate={setCurrentPage} />
+      <Page data={data} setData={setData} onNavigate={setCurrentPage} {...extraProps} />
     </div>
   );
 }

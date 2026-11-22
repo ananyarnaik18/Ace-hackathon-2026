@@ -7,7 +7,7 @@ import { formatRupees, formatDate } from '../utils/format.js';
 import ForecastChart from '../components/ForecastChart.jsx';
 import WhatIfPanel from '../components/WhatIfPanel.jsx';
 
-export default function Forecast({ data }) {
+export default function Forecast({ data, preset = undefined }) {
   const [settings, setSettings] = useState(() => loadForecastSettings());
   const [horizon, setHorizon] = useState(30);
   const [scenario, setScenario] = useState(null);
@@ -64,6 +64,7 @@ export default function Forecast({ data }) {
       <WhatIfPanel
         data={data}
         today={today}
+        initialPreset={preset}
         onRun={(s) => setScenario(s)}
         onReset={() => setScenario(null)}
       />

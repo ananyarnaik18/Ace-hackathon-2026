@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SCENARIO_TYPES, DEFAULT_LATE_DAYS, validateScenario, biggestLatePayer } from '../data/whatif.js';
 
 // Controls only. The parent (Forecast page) owns the scenario state.
 // onRun(scenario) sets the active scenario; onReset() clears it.
-export default function WhatIfPanel({ data, today, onRun, onReset }) {
+export default function WhatIfPanel({ data, today, onRun, onReset, initialPreset }) {
   const [type, setType] = useState(SCENARIO_TYPES.ALL_LATE);
   const [studentId, setStudentId] = useState(data.students[0] ? data.students[0].id : '');
   const [days, setDays] = useState(String(DEFAULT_LATE_DAYS));
@@ -37,6 +37,12 @@ export default function WhatIfPanel({ data, today, onRun, onReset }) {
   function badDayPreset() {
     run({ type: SCENARIO_TYPES.ALL_LATE, days: DEFAULT_LATE_DAYS });
   }
+
+  // Runs the Bad day preset once on mount when opened from the dashboard deep link.
+  useEffect(() => {
+    if (initialPreset === 'badDay') badDayPreset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function latePayerPreset() {
     const id = biggestLatePayer(data, today);
